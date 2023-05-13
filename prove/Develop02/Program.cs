@@ -1,20 +1,26 @@
 using System;
 using System.Collections.Generic;
 
+class JournalEntry
+{
+    public string Prompt { get; set; }
+    public string Entry { get; set; }
+}
+
 class Journal
 {
-    private List<string> entries;
+    private List<JournalEntry> entries;
 
     public Journal()
     {
-        entries = new List<string>();
+        entries = new List<JournalEntry>();
     }
 
     public void WriteNewEntry(string prompt)
     {
         Console.WriteLine(prompt);
         string entry = Console.ReadLine();
-        entries.Add(entry);
+        entries.Add(new JournalEntry { Prompt = prompt, Entry = entry });
     }
 
     public void DisplayJournal()
@@ -26,9 +32,10 @@ class Journal
         else
         {
             Console.WriteLine("Journal Entries:");
-            foreach (string entry in entries)
+            foreach (JournalEntry entry in entries)
             {
-                Console.WriteLine("- " + entry);
+                Console.WriteLine("- Prompt: " + entry.Prompt);
+                Console.WriteLine("  Entry: " + entry.Entry);
             }
         }
     }
@@ -57,6 +64,7 @@ class Program
                 case "1":
                     Console.Write("Enter a prompt: ");
                     string prompt = Console.ReadLine();
+                    Console.Write("Enter an entry for: ");
                     journal.WriteNewEntry(prompt);
                     break;
                 case "2":
