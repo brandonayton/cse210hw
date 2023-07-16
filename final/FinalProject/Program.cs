@@ -1,19 +1,22 @@
 using System;
 using System.Collections.Generic;
 
-// Class representing a Student
-class Student
+// Base class for all users
+class User
 {
     public string Name { get; set; }
     public int ID { get; set; }
+}
+
+// Class representing a Student
+class Student : User
+{
     public string ContactInformation { get; set; }
 }
 
 // Class representing a Teacher
-class Teacher
+class Teacher : User
 {
-    public string Name { get; set; }
-    public int ID { get; set; }
     public string SubjectSpecialization { get; set; }
 }
 
@@ -46,8 +49,27 @@ class Grade
     public Student Student { get; set; }
 }
 
+// Base class for administrative functions
+class AdminFunctions
+{
+    public virtual void AddUser(User user)
+    {
+        // Implementation to add user
+    }
+
+    public virtual void UpdateUser(User user)
+    {
+        // Implementation to update user
+    }
+
+    public virtual void DeleteUser(User user)
+    {
+        // Implementation to delete user
+    }
+}
+
 // Class representing the Student Management System
-class StudentManagementSystem
+class StudentManagementSystem : AdminFunctions
 {
     public List<Student> Students { get; set; }
     public List<Teacher> Teachers { get; set; }
@@ -60,37 +82,41 @@ class StudentManagementSystem
         Courses = new List<Course>();
     }
 
-    public void AddStudent(Student student)
+    public override void AddUser(User user)
     {
-        Students.Add(student);
+        if (user is Student student)
+        {
+            Students.Add(student);
+        }
+        else if (user is Teacher teacher)
+        {
+            Teachers.Add(teacher);
+        }
     }
 
-    public void UpdateStudent(Student student)
+    public override void UpdateUser(User user)
     {
-        // Implementation to update student record
+        if (user is Student student)
+        {
+            // Implementation to update student record
+        }
+        else if (user is Teacher teacher)
+        {
+            // Implementation to update teacher record
+        }
     }
 
-    public void DeleteStudent(Student student)
+    public override void DeleteUser(User user)
     {
-        Students.Remove(student);
+        if (user is Student student)
+        {
+            Students.Remove(student);
+        }
+        else if (user is Teacher teacher)
+        {
+            Teachers.Remove(teacher);
+        }
     }
-
-    public void AddTeacher(Teacher teacher)
-    {
-        Teachers.Add(teacher);
-    }
-
-    public void UpdateTeacher(Teacher teacher)
-    {
-        // Implementation to update teacher record
-    }
-
-    public void DeleteTeacher(Teacher teacher)
-    {
-        Teachers.Remove(teacher);
-    }
-
-    // Other administrative functions can be added here
 
     // Method to input grades
     public void InputGrades(Student student, string assignment, float score)
@@ -130,10 +156,10 @@ class Program
 {
     static void Main()
     {
-        // Creating instances of StudentManagementSystem
+        // Creating an instance of StudentManagementSystem
         StudentManagementSystem sms = new StudentManagementSystem();
 
-        // Creating instances of students
+        // Creating instances of users
         Student student1 = new Student()
         {
             Name = "John Doe",
@@ -141,18 +167,6 @@ class Program
             ContactInformation = "john.doe@example.com"
         };
 
-        Student student2 = new Student()
-        {
-            Name = "Jane Smith",
-            ID = 2,
-            ContactInformation = "jane.smith@example.com"
-        };
-
-        // Adding students to the StudentManagementSystem
-        sms.AddStudent(student1);
-        sms.AddStudent(student2);
-
-        // Creating instances of teachers
         Teacher teacher1 = new Teacher()
         {
             Name = "Mr. Johnson",
@@ -160,8 +174,9 @@ class Program
             SubjectSpecialization = "Mathematics"
         };
 
-        // Adding teachers to the StudentManagementSystem
-        sms.AddTeacher(teacher1);
+        // Adding users to the StudentManagementSystem
+        sms.AddUser(student1);
+        sms.AddUser(teacher1);
 
         // Creating instances of courses
         Course course1 = new Course()
@@ -172,7 +187,6 @@ class Program
 
         // Enrolling students in courses
         course1.EnrolledStudents.Add(student1);
-        course1.EnrolledStudents.Add(student2);
 
         // Adding courses to the StudentManagementSystem
         sms.Courses.Add(course1);
