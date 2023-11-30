@@ -1,125 +1,141 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
-public class Scripture
+class Word
 {
-    private string reference;
-    private string text;
-    private List<string> hiddenWords;
+    public string Text { get; }
+    public bool IsHidden { get; set; }
 
-    public Scripture(string reference, string text)
+    public Word(string text)
+    {
+        Text = text;
+        IsHidden = false;
+    }
+
+    public void Hide()
+    {
+        IsHidden = true;
+    }
+
+    public string Display()
+    {
+        return IsHidden ? new string('_', Text.Length) : Text;
+    }
+}
+
+class ScriptureReference
+{
+    public string Reference { get; }
+
+    public ScriptureReference(string reference)
+    {
+        Reference = reference;
+    }
+}
+
+class Scripture
+{
+    private readonly ScriptureReference reference;
+    private readonly Word[] words;
+
+    public Scripture(ScriptureReference reference, string text)
     {
         this.reference = reference;
-        this.text = text;
-        hiddenWords = new List<string>();
+        string[] wordArray = text.Split(' ');
+        words = new Word[wordArray.Length];
+
+        for (int i = 0; i < wordArray.Length; i++)
+        {
+            words[i] = new Word(wordArray[i]);
+        }
+    }
+
+    public void HideRandomWords()
+    {
+        Random random = new Random();
+        int wordsToHide = random.Next(1, words.Length / 2);
+
+        for (int i = 0; i < wordsToHide; i++)
+        {
+            int index;
+            do
+            {
+                index = random.Next(0, words.Length);
+            } while (words[index].IsHidden);
+
+            words[index].Hide();
+        }
     }
 
     public void Display()
     {
-        Console.Clear();
-        Console.WriteLine(reference + ":");
-        Console.WriteLine(text);
-    }
-
-    public void HideWords(int count)
-    {
-        Random random = new Random();
-        List<string> words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
-
-        for (int i = 0; i < count; i++)
+        Console.Clear(); // Clear the console
+        Console.WriteLine($"Scripture Reference: {reference.Reference}");
+        foreach (Word word in words)
         {
-            int index = random.Next(words.Count);
-            string word = words[index];
-            if (!hiddenWords.Contains(word))
-            {
-                hiddenWords.Add(word);
-                words[index] = new string('_', word.Length);
-            }
-            else
-            {
-                i--;
-            }
+            Console.Write(word.Display() + " ");
         }
-
-        text = string.Join(" ", words);
+        Console.WriteLine();
     }
 
     public bool AllWordsHidden()
     {
-        return hiddenWords.Count == text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
-    }
-}
-
-public class Reference
-{
-    private string book;
-    private int chapter;
-    private int startVerse;
-    private int endVerse;
-
-    public Reference(string book, int chapter, int verse)
-    {
-        this.book = book;
-        this.chapter = chapter;
-        this.startVerse = verse;
-        this.endVerse = verse;
-    }
-
-    public Reference(string book, int chapter, int startVerse, int endVerse)
-    {
-        this.book = book;
-        this.chapter = chapter;
-        this.startVerse = startVerse;
-        this.endVerse = endVerse;
-    }
-
-    public string GetReference()
-    {
-        if (startVerse == endVerse)
+        foreach (Word word in words)
         {
-            return $"{book} {chapter}:{startVerse}";
-        }
-        else
-        {
-            return $"{book} {chapter}:{startVerse}-{endVerse}";
-        }
-    }
-}
-
-public class Word
-{
-    private string text;
-
-    public Word(string text)
-    {
-        this.text = text;
-    }
-
-    public string GetText()
-    {
-        return text;
-    }
-}
-
-public class Program
-{
-    public static void Main()
-    {
-        Scripture scripture = new Scripture("John 3:16", "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.");
-        scripture.Display();
-
-        while (!scripture.AllWordsHidden())
-        {
-            Console.WriteLine("Press Enter to continue or type 'quit' to exit:");
-            string input = Console.ReadLine();
-            if (input.ToLower() == "quit")
+            if (!word.IsHidden)
             {
-                break;
+                return false;
             }
-
-            scripture.HideWords(2);
-            scripture.Display();
         }
+        return true;
+    }
+
+    public bool Guess(string guess)
+    {
+        string[] guessedWords = guess.Split(' ');
+
+        if (guessedWords.Length != words.Length)
+        {
+            Console.WriteLine("Incorrect. Try again.");
+            return false;
+        }
+
+        for (int i = 0; i < words.Length; i++)
+        {
+            if (!string.Equals(guessedWords[i], words[i].Text, StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("Incorrect. Try again.");
+                return false;
+            }
+        }
+
+        Console.WriteLine("Correct! You've guessed the scripture.");
+        return true;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        ScriptureReference reference = new ScriptureReference("John 3:16");
+        Scripture scripture = new Scripture(reference, "For God so loved the world that he gave his only Son, that whoever believes in him should not perish but have eternal life.");
+
+        do
+        {
+            // Display the complete scripture
+            scripture.Display();
+
+            Console.WriteLine("\nPress Enter to continue, type 'quit' to exit, or guess the scripture:");
+
+            string input = Console.ReadLine();
+
+            if (input.ToLower() == "quit")
+                break;
+            else if (scripture.Guess(input))
+                break;
+
+            scripture.HideRandomWords();
+
+        } while (!scripture.AllWordsHidden());
     }
 }
